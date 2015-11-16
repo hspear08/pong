@@ -18,11 +18,12 @@ if not pygame.mixer: print 'Warning, sound disabled'
 
 
 pygame.mixer.init(44100, 16) # 44100 KHz, 16 bit
-print pygame.mixer.get_init()
+#print pygame.mixer.get_init()
 
-SCREEN_X = 1024
-SCREEN_Y = 768
-VERT_SPEED = 10
+SCREEN_X = 1920
+SCREEN_Y = 980  
+PADDLE_SPEED = 10
+BALL_SPEED = 9 
 
 
 #functions to create our resources
@@ -62,6 +63,7 @@ class Paddle(pygame.sprite.Sprite):
         self.image, self.rect = load_image('paddle.bmp', -1)
         self.direction = 0
         self.rect.left = 10
+        self.point = 0
         #self.punching = 0
 
     def update(self):
@@ -70,22 +72,17 @@ class Paddle(pygame.sprite.Sprite):
         #self.rect.top = pos[1]
         
         if ( self.direction == 1 ): 
-            if ( self.rect.top >= VERT_SPEED ):
-                self.rect.top -= VERT_SPEED
+            if ( self.rect.top >= PADDLE_SPEED ):
+                self.rect.top -= PADDLE_SPEED
             else:
                 self.rect.top = 0
         elif ( self.direction == -1 ):
-            if ( self.rect.bottom < SCREEN_Y - VERT_SPEED - 1 ):
-                self.rect.bottom += VERT_SPEED
+            if ( self.rect.bottom < SCREEN_Y - PADDLE_SPEED - 1 ):
+                self.rect.bottom += PADDLE_SPEED
             else:
                 self.rect.bottom = SCREEN_Y - 1
              
-        
-        #self.rect.left = 10 
 
-        #self.rect.midtop = pos
-        #if self.punching:
-        #    self.rect.move_ip(5, 10)
 
     def SetDirection(self, direction):
         self.direction = direction 
@@ -97,59 +94,58 @@ class Paddle(pygame.sprite.Sprite):
         else :
           self.rect.right = SCREEN_X - 10
 
+    def IncPoint(self):
+        self.point = self.point + 1
 
-
-    #def punch(self, target):
-    #    "returns true if the paddle collides with the target"
-    #    if not self.punching:
-    #        self.punching = 1
-    #        hitbox = self.rect.inflate(-5, -5)
-    #        return hitbox.colliderect(target.rect)
-
-    #def unpunch(self):
-    #    "called to pull the paddle back"
-    #    self.punching = 0
 
 
 class Ball(pygame.sprite.Sprite):
-    """moves a monkey critter across the screen. it can spin the
-       monkey when it is punched."""
     def __init__(self):
         pygame.sprite.Sprite.__init__(self) #call Sprite intializer
         self.image, self.rect = load_image('ball.bmp', -1)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
-        self.rect.topleft = 10, 10
-        self.move_x = 9
-        self.move_y = 9
+        self.rect.topleft = SCREEN_X/2, SCREEN_Y/2
+        self.move_x = BALL_SPEED / 2
+        self.move_y = BALL_SPEED / 2
+        self.speed = BALL_SPEED
         #self.dizzy = 0
 
     def update(self):
-        "fly along current vector path"
-        #if self.dizzy:
-        #    self._spin()
-        #else:
         self._fly()
 
     def _fly(self):
-        "move the monkey across the screen, and turn at the ends"
-        if self.rect.left < self.area.left or \
-            self.rect.right > self.area.right:
-            self.move_x = -self.move_x
-            #newpos = self.rect.move((self.move_x, self.move_y))
-            #self.image = pygame.transform.flip(self.image, 1, 0)
+        if self.rect.left < self.area.left: 
+            print "Paddle1 point!"
+            self.paddle1.IncPoint()
+
+        if self.rect.right > self.area.right:
+            print "Paddle2 point!"
+            self.paddle2.IncPoint()
 
         if self.rect.top < self.area.top or \
             self.rect.bottom > self.area.bottom:
             self.move_y = -self.move_y
 
-        if self.rect.colliderect(self.paddle):
-            self.r = random.randint(3,6)
-            self.move_x = self.r
-            self.move_y = 9 - self.r
+        if self.rect.colliderect(self.paddle1):
+            #self.r = random.randint(BALL_SPEED / 3, 2 * BALL_SPEED / 3)
+            self.r = (self.rect.top + self.rect.height/2 - self.paddle1.rect.top - self.paddle1.rect.height/2) * 2 * self.speed / (self.paddle1.rect.height * 3 / 2)
+            print self.rect.top, self.rect.height/2, self.paddle1.rect.top, self.paddle1.rect.height/2, self.r
+            self.move_y = self.r
+            self.move_x = self.speed - abs(self.r)
+            print self.speed, self.move_x, self.move_y
             self.hit_sound.play() 
-            #newpos = self.rect.move((self.move_x, self.move_y))
-            #self.image = pygame.transform.flip(self.image, 1, 0)
+            self.speed = self.speed + 1
+
+        if self.rect.colliderect(self.paddle2):
+            #self.r = random.randint(BALL_SPEED / 3, 2 * BALL_SPEED / 3)
+            self.r = (self.rect.top + self.rect.height/2 - self.paddle2.rect.top - self.paddle2.rect.height/2) * 2 * self.speed / (self.paddle1.rect.height * 3 / 2)
+            print self.rect.top, self.rect.height/2, self.paddle2.rect.top, self.paddle2.rect.height/2, self.r
+            self.move_y = self.r
+            self.move_x = - self.speed + abs(self.move_y)
+            print self.speed, self.move_x, self.move_y
+            self.hit_sound.play() 
+            self.speed = self.speed + 1
 
         newpos = self.rect.move((self.move_x, self.move_y))
         self.rect = newpos
@@ -163,24 +159,6 @@ class Ball(pygame.sprite.Sprite):
     def SetHitSound(self, hit_sound):
         self.hit_sound = hit_sound 
 
-
-    #def _spin(self):
-    #    "spin the monkey image"
-    #    center = self.rect.center
-    #    #self.dizzy = self.dizzy + 12
-    #    #if self.dizzy >= 360:
-    #    #    self.dizzy = 0
-    #    #    self.image = self.original
-    #    #else:
-    #    rotate = pygame.transform.rotate
-    #    self.image = rotate(self.original, 0) #self.dizzy)
-    #    self.rect = self.image.get_rect(center=center)
-
-    #def punched(self):
-    #    "this will cause the monkey to start spinning"
-    #    if not self.dizzy:
-    #        self.dizzy = 1
-    #        self.original = self.image
 
 
 def main():
@@ -211,20 +189,35 @@ def main():
     pygame.display.flip()
 
 #Prepare Game Objects
-    print pygame.mixer.get_init()
+    #print pygame.mixer.get_init()
     clock = pygame.time.Clock()
-    joystick = pygame.joystick.Joystick(0)
-    joystick.init()
-    #whiff_sound = load_sound('whiff.wav')
-    #punch_sound = load_sound('punch.wav')
+
+    joystick = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+
+    if ( pygame.joystick.get_count() > 0 ):
+      print "Adding player 1"
+      #joystick[0] = pygame.joystick.Joystick(0)
+      joystick[0].init()
+    else:
+      print "This game requires a joystick.  Please plug one in and rerun."
+      return
+
+    if ( pygame.joystick.get_count() > 1 ):
+      print "Adding player 2"
+      #joystick[1] = pygame.joystick.Joystick(1)
+      joystick[1].init()
+
     sound = load_sound('blip1.ogg')
-    paddle1 = Paddle()
-    paddle2 = Paddle()
+    paddle = [Paddle() for x in range(0, 2)]
+    #paddle[0] = Paddle()
+    #paddle[1] = Paddle()
+    paddle[0].SetSide(0) # left
+    paddle[1].SetSide(1) # right
     ball = Ball()
-    ball.SetPaddle1(paddle1)
-    ball.SetPaddle2(paddle2)
+    ball.SetPaddle1(paddle[0])
+    ball.SetPaddle2(paddle[1])
     ball.SetHitSound(sound)
-    allsprites = pygame.sprite.RenderPlain((paddle1, paddle2, ball))
+    allsprites = pygame.sprite.RenderPlain((paddle[0], paddle[1], ball))
 
 #Main Loop
     while 1:
@@ -237,29 +230,19 @@ def main():
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 return
             elif event.type == JOYAXISMOTION:
-               print "Got joystick axis event"
-               joydir = joystick.get_axis(1)
-               print joydir
-               if ( joydir >= 0.5 ):
-                   print "Set direction = -1"
-                   paddle.SetDirection(-1)
-               elif (joydir <= -0.5): 
-                   print "Set direction = 1"
-                   paddle.SetDirection(1)
-               else:
-                   print "Set direction = 0"
-                   paddle.SetDirection(0)
-            elif event.type == JOYBUTTONDOWN:
-               print "Got joystick button event"
+               for i in range(0, 2): 
+                   #print "Got joystick axis event"
+                   joydir = joystick[i].get_axis(1)
+                   if ( joydir >= 0.5 ):
+                       paddle[i].SetDirection(-1)
+                   elif (joydir <= -0.5): 
+                       paddle[i].SetDirection(1)
+                   else:
+                       paddle[i].SetDirection(0)
 
+            #elif event.type == JOYBUTTONDOWN:
             #elif event.type == MOUSEBUTTONDOWN:
-            #    if paddle.punch(ball):
-            #        punch_sound.play() #punch
-            #        Ball.punched()
-            #    else:
-            #        whiff_sound.play() #miss
             #elif event.type is MOUSEBUTTONUP:
-            #    paddle.unpunch()
 
         allsprites.update()
 
