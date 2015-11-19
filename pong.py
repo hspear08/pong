@@ -20,8 +20,8 @@ if not pygame.mixer: print 'Warning, sound disabled'
 pygame.mixer.init(44100, 16) # 44100 KHz, 16 bit
 #print pygame.mixer.get_init()
 
-SCREEN_X = 1920
-SCREEN_Y = 980  
+SCREEN_X = 1200 #1920
+SCREEN_Y = 800 #980  
 PADDLE_SPEED = 10
 BALL_SPEED = 9 
 
@@ -118,10 +118,16 @@ class Ball(pygame.sprite.Sprite):
         if self.rect.left < self.area.left: 
             print "Paddle1 point!"
             self.paddle1.IncPoint()
+            self.rect.topleft = SCREEN_X/2, SCREEN_Y/2
+            self.move_x = BALL_SPEED / 2
+            self.move_y = BALL_SPEED / 2
 
         if self.rect.right > self.area.right:
             print "Paddle2 point!"
             self.paddle2.IncPoint()
+            self.rect.topleft = SCREEN_X/2, SCREEN_Y/2
+            self.move_x = - BALL_SPEED / 2
+            self.move_y = BALL_SPEED / 2
 
         if self.rect.top < self.area.top or \
             self.rect.bottom > self.area.bottom:
@@ -199,8 +205,8 @@ def main():
       #joystick[0] = pygame.joystick.Joystick(0)
       joystick[0].init()
     else:
-      print "This game requires a joystick.  Please plug one in and rerun."
-      return
+      #print "This game requires a joystick.  Please plug one in and rerun."
+      print "No joystick detected.  Only keyboard will be active"
 
     if ( pygame.joystick.get_count() > 1 ):
       print "Adding player 2"
@@ -227,8 +233,13 @@ def main():
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+            elif event.type == KEYDOWN: 
+              if event.key == K_ESCAPE:
                 return
+              elif event.key == K_DOWN:
+                paddle[0].SetDirection(1)
+              elif event.key == K_UP:
+                paddle[0].SetDirection(0)
             elif event.type == JOYAXISMOTION:
                for i in range(0, 2): 
                    #print "Got joystick axis event"
