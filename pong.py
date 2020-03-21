@@ -14,17 +14,17 @@ from pygame.locals import *
 import random
 import time
 
-if not pygame.font: print 'Warning, fonts disabled'
-if not pygame.mixer: print 'Warning, sound disabled'
+if not pygame.font: print('Warning, fonts disabled')
+if not pygame.mixer: print('Warning, sound disabled')
 
 
 pygame.mixer.init(44100, 16) # 44100 KHz, 16 bit
-#print pygame.mixer.get_init()
+#print (pygame.mixer.get_init())
 
-AREA_X = 1200 #1920
-AREA_Y = 700 #1920
-SCREEN_X = 1200 #1920
-SCREEN_Y = 800 #980  
+AREA_X = 800 # 1200 #1920
+AREA_Y = 400 # 700 #1920
+SCREEN_X = 800 # 1200 #1920
+SCREEN_Y = 500 # 800 #980  
 AREA_X_MARGIN = (SCREEN_X - AREA_X) / 2  # split left and right side
 AREA_Y_MARGIN = (SCREEN_Y - AREA_Y)  # top scoreboard height
 PADDLE_SPEED = 10
@@ -34,11 +34,11 @@ BALL_SPEED = 9
 #functions to create our resources
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
-    try:
-        image = pygame.image.load(fullname)
-    except pygame.error, message:
-        print 'Cannot load image:', fullname
-        raise SystemExit, message
+    # TODO # try:
+    image = pygame.image.load(fullname)
+    #except pygame.error, message:
+    #    print ('Cannot load image:', fullname)
+    #    raise SystemExit, message
     image = image.convert()
     if colorkey is not None:
         if colorkey is -1:
@@ -52,11 +52,11 @@ def load_sound(name):
     if not pygame.mixer or not pygame.mixer.get_init():
         return NoneSound()
     fullname = os.path.join('data', name)
-    try:
-        sound = pygame.mixer.Sound(fullname)
-    except pygame.error, message:
-        print 'Cannot load sound:', fullname
-        raise SystemExit, message
+    # TODO # try:
+    sound = pygame.mixer.Sound(fullname)
+    #except pygame.error, message:
+    #    print ('Cannot load sound:', fullname)
+    #    raise SystemExit, message
     return sound
 
 
@@ -150,14 +150,14 @@ class Ball(pygame.sprite.Sprite):
             self.move_y = (self.speed * 4 * diff_y) / (3 * paddle.rect.height)  #  Calculate new y component of vector, which is from {-2/3 to +2/3} * speed depending on hit location
             self.move_x = self.speed - abs(self.move_y)  #  Calculate new x magnitude of vector, which is speed - move_y so that ball vector magnitude is |speed|.
             self.move_x = self.move_x * (1 - 2*paddle.side) # Calculate sign of new x component of vector (left or right movement)
-            print self.speed, self.move_x, self.move_y
+            print (self.speed, self.move_x, self.move_y)
             self.hit_sound.play() 
             self.speed = self.speed + 1
                                                         
     def _fly(self):
         if self.rect.left < self.area.left: 
             self.paddle2.IncPoint()
-            print "Paddle2 point! ", self.paddle2.point
+            print ("Paddle2 point! ", self.paddle2.point)
             self.rect.topleft = (AREA_X/2) + AREA_X_MARGIN, (AREA_Y/2) + AREA_Y_MARGIN
             self.move_x = BALL_SPEED / 2
             self.move_y = BALL_SPEED / 2
@@ -165,7 +165,7 @@ class Ball(pygame.sprite.Sprite):
 
         if self.rect.right > self.area.right:
             self.paddle1.IncPoint()
-            print "Paddle1 point! ", self.paddle1.point
+            print ("Paddle1 point! ", self.paddle1.point)
             self.rect.topleft = (AREA_X/2) + AREA_X_MARGIN, (AREA_Y/2) + AREA_Y_MARGIN
             self.move_x = - BALL_SPEED / 2
             self.move_y = BALL_SPEED / 2
@@ -262,26 +262,26 @@ def main():
     pygame.display.flip()
 
 #Prepare Game Objects
-    #print pygame.mixer.get_init()
+    #print (pygame.mixer.get_init())
     clock = pygame.time.Clock()
 
     joystick = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
 
     if ( pygame.joystick.get_count() > 0 ):
-      print "Adding player 1"
+      print ("Adding player 1")
       #joystick[0] = pygame.joystick.Joystick(0)
       joystick[0].init()
     else:
-      #print "This game requires a joystick.  Please plug one in and rerun."
-      print "No joystick detected.  Only keyboard will be active for player 1"
+      #print ("This game requires a joystick.  Please plug one in and rerun.")
+      print ("No joystick detected.  Only keyboard will be active for player 1")
 
     computer=0
     if ( pygame.joystick.get_count() > 1 ):
-      print "Adding player 2"
+      print ("Adding player 2")
       #joystick[1] = pygame.joystick.Joystick(1)
       joystick[1].init()
     else:
-      print "Player 2 is a computer"
+      print ("Player 2 is a computer")
       computer=1
 
     hit_sound = load_sound('blip1.ogg')
@@ -330,7 +330,7 @@ def main():
 
             elif event.type == JOYAXISMOTION:
                for i in range(0, 2 - computer): 
-                   #print "Got joystick axis event"
+                   #print ("Got joystick axis event")
                    joydir = joystick[i].get_axis(1)
                    if ( joydir >= 0.5 ):
                        paddle[i].SetDirection(-1)
